@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  phone     String?
+  address   String?
+  isBanned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  medicines Medicine[]
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  medicines Medicine[]
+}
+
+model Medicine {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  price        Float
+  stock        Int      @default(0)
+  image        String?
+  manufacturer String
+  dosage       String?
+  sellerId     String
+  categoryId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  seller     User        @relation(fields: [sellerId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  customerId      String
+  status          OrderStatus @default(PLACED)
+  totalAmount     Float
+  shippingAddress String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  customer   User        @relation(fields: [customerId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  medicineId String
+  quantity   Int
+  price      Float
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  customerId String
+  medicineId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  customer User     @relation(fields: [customerId], references: [id])
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+}
