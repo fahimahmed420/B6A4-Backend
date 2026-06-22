@@ -11,7 +11,18 @@ import adminRoutes from "./routes/admin.routes";
 
 const app = express();
 
-app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowed = [
+      /^https:\/\/b6-a4.*\.vercel\.app$/,
+      /^http:\/\/localhost:\d+$/,
+    ];
+    if (allowed.some((r) => r.test(origin))) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 app.get("/", (_req, res) => {
