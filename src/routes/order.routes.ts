@@ -31,7 +31,7 @@ router.post("/", authenticate, authorize("CUSTOMER"), async (req: AuthRequest, r
       orderItems.push({ medicineId: item.medicineId, quantity: item.quantity, price: medicine.price });
     }
 
-    const order = await prisma.$transaction(async (tx: typeof prisma) => {
+    const order = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
           customerId: req.user!.id,
